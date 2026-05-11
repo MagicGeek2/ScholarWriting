@@ -32,6 +32,7 @@ def test_codex_install_and_uninstall_roundtrip(tmp_path):
     assert os.access(skill_dir / "bin" / "scholar-writing", os.X_OK)
     assert (runtime_dir / "pyproject.toml").exists()
     assert (runtime_dir / "scholar_writing" / "resources" / "references" / "STYLE_GUIDE_ZH.md").exists()
+    assert (runtime_dir / "scholar_writing" / "resources" / "references" / "paper" / "citation-strategy.md").exists()
     assert (runtime_dir / "scholar_writing" / "cli.py").exists()
     assert (runtime_dir / "scholar_writing" / "prompts" / "writer.md").exists()
     assert not (runtime_dir / ".git").exists()
@@ -42,7 +43,9 @@ def test_codex_install_and_uninstall_roundtrip(tmp_path):
     assert not (runtime_dir / "adapters" / "claude-code" / "skills").exists()
     assert sorted(path.relative_to(skill_dir).as_posix() for path in skill_dir.rglob("SKILL.md")) == ["SKILL.md"]
     assert (codex_home / "agents" / "scholar-writer.toml").exists()
-    assert "学术写作助手" in (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+    installed_skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+    assert "学术写作助手" in installed_skill
+    assert "paper 项目" in installed_skill
 
     uninstall = run_script("uninstall-codex.sh", codex_home)
 

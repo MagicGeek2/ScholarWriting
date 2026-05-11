@@ -62,6 +62,9 @@ def build_taskpack(project_dir, config, state):
                 "reviews_dir": "reviews/",
                 "scores_path": "scores.yaml",
             },
+            "review": {
+                "dimensions": ["logic", "de_ai", "completeness", "format"],
+            },
             "outputs": {
                 "sections_dir": "sections/",
                 "revisions_dir": "revisions/",

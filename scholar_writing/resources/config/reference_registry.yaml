@@ -62,6 +62,91 @@ references:
       agent_roles: [writer, revision]
       actions: [run_writer, run_revision]
 
+  paper_lifecycle_outline:
+    path: scholar_writing/resources/references/paper/paper-lifecycle-and-outline.md
+    purpose: paper 项目生命周期、材料盘点、研究问题、贡献声明、outline、claim registry 和 dependency graph
+    category: paper
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [architect]
+      actions: [run_architect]
+
+  paper_section_writing:
+    path: scholar_writing/resources/references/paper/paper-section-writing.md
+    purpose: Introduction、Related Work、Method、Results、Discussion 等章节写作 conventions
+    category: paper
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [writer]
+      actions: [run_writer]
+
+  paper_style_routing:
+    path: scholar_writing/resources/references/paper/paper-style-routing.md
+    purpose: survey、empirical、systems、case-study paper 的风格路由和证据需求
+    category: paper
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [writer, reviewer]
+      actions: [run_writer, run_reviewers]
+      review_dimensions: [logic, completeness]
+
+  paper_review_gates:
+    path: scholar_writing/resources/references/paper/paper-review-gates.md
+    purpose: section、methodology、coherence、abstract 的审阅 gate 和 Critical/Major/Minor 分级
+    category: review
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [reviewer, revision]
+      actions: [run_reviewers, run_revision]
+      review_dimensions: [logic, completeness, format]
+
+  peer_review_rubric:
+    path: scholar_writing/resources/references/paper/peer-review-rubric.md
+    purpose: 投稿前模拟同行评审 rubric，覆盖原创性、方法论、结果和写作四维
+    category: review
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [reviewer]
+      actions: [run_reviewers]
+      review_dimensions: [logic, completeness, format]
+
+  venue_visual_contract:
+    path: scholar_writing/resources/references/paper/venue-and-visual-contract.md
+    purpose: venue、LaTeX、figure、table、equation 和 pre-submission 视觉检查合同
+    category: paper
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [writer, reviewer, revision]
+      actions: [run_writer, run_reviewers, run_revision]
+      review_dimensions: [format, completeness]
+
+  english_paper_polishing:
+    path: scholar_writing/resources/references/paper/english-paper-polishing.md
+    purpose: 英文学术段落润色，保留技术含义并输出修改说明
+    category: polishing
+    applies_to:
+      project_types: [paper]
+      languages: [en]
+      agent_roles: [writer, revision]
+      actions: [run_writer, run_revision]
+
+  citation_strategy:
+    path: scholar_writing/resources/references/paper/citation-strategy.md
+    purpose: Zotero/BibTeX/CSL 优先的引用策略、citation placeholder 和 helper 边界
+    category: citation
+    applies_to:
+      project_types: [paper]
+      languages: [zh, en]
+      agent_roles: [architect, writer, reviewer, revision]
+      actions: [run_architect, run_writer, run_reviewers, run_revision]
+      review_dimensions: [logic, completeness, format]
+
 section_patterns:
   nsfc:
     "01_摘要": scholar_writing/resources/references/patterns/01_摘要.md

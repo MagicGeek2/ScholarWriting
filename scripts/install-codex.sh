@@ -163,7 +163,7 @@ ${CODEX_HOME:-$HOME/.codex}/skills/scholar-writing/bin/scholar-writing next my-p
 ${CODEX_HOME:-$HOME/.codex}/skills/scholar-writing/bin/scholar-writing taskpack my-proposal --format json
 ```
 
-按返回的 action 和 taskpack 推进。`taskpack.reference_inputs` 是安装版运行资源中 `scholar_writing/resources/references/` 提供的质量规则。
+按返回的 action 和 taskpack 推进。`taskpack.reference_inputs` 是安装版运行资源中 `scholar_writing/resources/references/` 提供的质量规则；paper 项目会额外选择论文 lifecycle、章节写作、review gate、venue/visual、英文润色和 citation strategy references。
 
 ## 写作角色
 

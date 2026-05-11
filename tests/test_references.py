@@ -96,3 +96,36 @@ def test_missing_reference_file_raises_clear_error(tmp_path):
             registry=registry,
             repo_root=tmp_path,
         )
+
+def test_select_references_for_paper_architect():
+    selected = select_references(
+        project_type="paper",
+        action="run_architect",
+        agent_role="architect",
+        language="zh",
+    )
+    paths = paths_for(selected)
+
+    assert "scholar_writing/resources/references/paper/paper-lifecycle-and-outline.md" in paths
+    assert "scholar_writing/resources/references/paper/citation-strategy.md" in paths
+    assert all(not Path(path).is_absolute() for path in paths)
+
+
+def test_paper_reference_files_exist_and_preserve_boundaries():
+    repo_root = find_repo_root(Path(__file__))
+    paper_dir = repo_root / "scholar_writing" / "resources" / "references" / "paper"
+    expected = {
+        "paper-lifecycle-and-outline.md",
+        "paper-section-writing.md",
+        "paper-style-routing.md",
+        "paper-review-gates.md",
+        "peer-review-rubric.md",
+        "venue-and-visual-contract.md",
+        "english-paper-polishing.md",
+        "citation-strategy.md",
+    }
+
+    assert {path.name for path in paper_dir.glob("*.md")} >= expected
+    assert "不能把愿望写成结果" in (paper_dir / "paper-lifecycle-and-outline.md").read_text(encoding="utf-8")
+    assert "不代表任何会议或期刊的官方模板" in (paper_dir / "venue-and-visual-contract.md").read_text(encoding="utf-8")
+    assert "不能替代 Zotero/CSL" in (paper_dir / "citation-strategy.md").read_text(encoding="utf-8")

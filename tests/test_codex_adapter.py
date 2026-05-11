@@ -15,6 +15,7 @@ def test_codex_repo_skill_exists_with_required_metadata():
     assert "uv run scholar-writing next" in content
     assert "scores.yaml" in content
     assert "reference_inputs" in content
+    assert "project.type: paper" in content
     assert "质量规则" in content
     assert "开发者调试" in content
     assert "平台中性" in content
