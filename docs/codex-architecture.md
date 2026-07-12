@@ -38,7 +38,7 @@ reference_inputs:
 
 ## Repo-local Skill 与 Codex Adapter
 
-源码仓库中的 `.agents/skills/scholar-writing/SKILL.md` 是平台通用 repo-local skill。Codex、Claude Code、opencode 等能发现 `.agents/skills` 的框架都可能读取它，因此这里不应写成 Codex 专属工作流。
+源码仓库中的 `.agents/skills/scholar-writing/SKILL.md` 是平台通用 repo-local skill。能发现 `.agents/skills` 的框架可以读取它，因此这里保持平台无关，只把 Codex 特有配置放在 `.codex/` 和安装脚本中。
 
 源码仓库中的 Codex adapter 包含：
 
@@ -79,7 +79,3 @@ ${CODEX_HOME:-$HOME/.codex}/skills/scholar-writing/bin/scholar-writing advance <
 ```
 
 `advance` 会更新 `scores.yaml`，低分审阅进入 `section_revision`，高分审阅进入 `complete` 或下一章节，高风险审阅通过 `ask_user` 暂停。
-
-## Legacy Claude Code Adapter
-
-`adapters/claude-code/skills/` 暂时保留为 Claude Code 风格入口和 prompt 资料库。`adapters/claude-code/skills/pipeline/SKILL.md` 已标记为 legacy adapter。后续应逐步把其中的角色指令抽取到共享 prompt 包，避免核心逻辑继续绑定 Claude Code 的 `Agent(...)` 语义。

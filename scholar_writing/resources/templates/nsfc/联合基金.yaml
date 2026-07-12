@@ -16,7 +16,7 @@ sections:
   - name: 立项依据
     file: 02_立项依据.md
     checklist: checklists/02_立项依据.yaml    # 复用面上项目 checklist
-    writer: writer/nsfc/立项依据
+    writer: writer
     subsections:
       - 研究意义
       - 国内外研究现状
@@ -25,7 +25,7 @@ sections:
   - name: 研究内容
     file: 03_研究内容.md
     checklist: checklists/03_研究内容.yaml
-    writer: writer/nsfc/研究内容
+    writer: writer
     subsections:
       - 研究目标
       - 研究内容
@@ -34,7 +34,7 @@ sections:
   - name: 研究方案
     file: 04_研究方案.md
     checklist: checklists/04_研究方案.yaml
-    writer: writer/nsfc/研究方案
+    writer: writer
     subsections:
       - 总体方案
       - 技术路线
@@ -42,7 +42,7 @@ sections:
   - name: 可行性分析
     file: 05_可行性分析.md
     checklist: checklists/05_可行性分析.yaml
-    writer: writer/nsfc/可行性分析
+    writer: writer
     subsections:
       - 研究方案可行
       - 研究条件可行
@@ -51,7 +51,7 @@ sections:
   - name: 特色与创新
     file: 06_特色与创新.md
     checklist: checklists/06_创新点.yaml      # 复用面上项目"创新点" checklist
-    writer: writer/nsfc/创新点
+    writer: writer
 
   - name: 年度计划
     file: 07_年度计划.md
@@ -66,7 +66,7 @@ sections:
   - name: 研究基础
     file: 08_研究基础.md
     checklist: checklists/07_研究基础.yaml    # 复用面上项目 checklist
-    writer: writer/nsfc/研究基础
+    writer: writer
     subsections:
       - 科研项目研究基础
       - 关键技术研究基础

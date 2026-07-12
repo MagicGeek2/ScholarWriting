@@ -90,10 +90,10 @@ critical_threshold: 60                 # critical 条目低于此分数触发短
 ### dry_run 试运行
 
 ```yaml
-dry_run: false                         # true: 只输出执行计划，不实际运行 Agent
+dry_run: false                         # 预留字段；当前 controller 尚未消费
 ```
 
-启用后，Pipeline 会输出完整的执行计划（Agent 调用顺序、预估 token 消耗），但不实际调用任何 Agent。
+该字段保留用于配置兼容；当前版本不会据此改变 controller 或 agent 行为。
 
 ## 项目目录结构
 

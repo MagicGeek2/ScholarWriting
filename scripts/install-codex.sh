@@ -83,8 +83,8 @@ copy_file() {
   cp "$source_path" "$target_path"
 }
 
-# Build a minimal Codex runtime. Do not copy the whole repository: the source
-# tree contains legacy Claude Code skills that must not be discoverable by Codex.
+# Build a minimal Codex runtime from the shared package and Codex agent definitions.
+# Repository-only development files are intentionally excluded from the installation.
 copy_file "$repo_root/pyproject.toml" "$stage_source/pyproject.toml"
 copy_file "$repo_root/README.md" "$stage_source/README.md"
 if [ -f "$repo_root/uv.lock" ]; then

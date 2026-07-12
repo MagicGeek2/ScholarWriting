@@ -40,7 +40,12 @@ def test_codex_install_and_uninstall_roundtrip(tmp_path):
     assert not (runtime_dir / ".codex").exists()
     assert not (runtime_dir / ".agents").exists()
     assert not (runtime_dir / "SKILL.md").exists()
-    assert not (runtime_dir / "adapters" / "claude-code" / "skills").exists()
+    assert {path.name for path in runtime_dir.iterdir()} <= {
+        "README.md",
+        "pyproject.toml",
+        "scholar_writing",
+        "uv.lock",
+    }
     assert sorted(path.relative_to(skill_dir).as_posix() for path in skill_dir.rglob("SKILL.md")) == ["SKILL.md"]
     assert (codex_home / "agents" / "scholar-writer.toml").exists()
     installed_skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
@@ -124,5 +129,10 @@ def test_install_can_finalize_generic_skill_install_location(tmp_path):
     assert (generic_skill_dir / "SKILL.md").exists()
     assert (generic_skill_dir / "runtime" / "pyproject.toml").exists()
     assert (generic_skill_dir / "bin" / "scholar-writing").exists()
-    assert not (generic_skill_dir / "runtime" / "adapters" / "claude-code" / "skills").exists()
+    assert {path.name for path in (generic_skill_dir / "runtime").iterdir()} <= {
+        "README.md",
+        "pyproject.toml",
+        "scholar_writing",
+        "uv.lock",
+    }
     assert not (generic_skill_dir / "scripts" / "install-codex.sh").exists()

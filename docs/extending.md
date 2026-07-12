@@ -1,6 +1,6 @@
 # 扩展开发指南
 
-ScholarWriting 采用模块化设计，支持扩展新的项目类型、Writer Agent、Reviewer Agent 和评审标准。
+ScholarWriting 采用模块化设计，支持扩展新的项目类型、写作规则、审阅维度和评审标准。
 
 ## 添加新的项目模板
 
@@ -83,11 +83,11 @@ sections:
   - name: Abstract
     file: 01_abstract.md
     checklist: checklists/abstract.yaml
-    writer: writer/paper/abstract
+    writer: writer
   - name: Introduction
     file: 02_introduction.md
     checklist: checklists/introduction.yaml
-    writer: writer/paper/introduction
+    writer: writer
   # ...
 
 dependency_graph:
@@ -109,74 +109,19 @@ review_strategy:
     always: [R4, R5, R7]
 ```
 
-### 3. 创建对应的 Writer Agent
+### 3. 添加章节写作规则
 
-```bash
-mkdir -p adapters/claude-code/skills/writer/paper/introduction
-```
+把 Introduction 的结构、输入和输出要求写入 `scholar_writing/resources/references/paper/` 下的章节规则，并在 `scholar_writing/resources/config/reference_registry.yaml` 中登记选择条件。通用 `writer` 角色会通过 taskpack 的 `reference_inputs` 读取这些规则。
 
-```markdown
-<!-- skills/writer/paper/introduction/SKILL.md -->
----
-name: writer-paper-introduction
-description: AI 论文 Introduction 章节写作
-allowed-tools: [Read, Write, Edit, Bash]
----
+## 添加新的审阅维度
 
-# Introduction Writer
+以添加“创新性审阅”（R9）为例。
 
-## 写作策略
+### 1. 添加审阅规则
 
-1. 开篇：用具体例子或数据引出研究问题
-2. 现状分析：简述现有方法及其局限性
-3. 本文贡献：明确列出 contributions（通常 3-4 条）
-4. 论文结构：简要说明后续章节安排
+在 `scholar_writing/resources/references/` 中新增创新性规则，明确自由分析、Checklist 评分和输出字段。
 
-## 输入
-
-- `planning/outline.md` 中 Introduction 部分
-- 对应 checklist
-- 相关素材片段
-
-## 输出
-
-生成 `sections/02_introduction.md`
-```
-
-## 添加新的 Reviewer Agent
-
-以添加"创新性审阅"（R9）为例：
-
-### 1. 创建 Reviewer 目录
-
-```bash
-mkdir -p adapters/claude-code/skills/reviewer/R9_novelty
-```
-
-### 2. 编写 SKILL.md
-
-```markdown
----
-name: reviewer-novelty
-description: 创新性审阅，评估研究的原创性和前沿性
-allowed-tools: [Read, Write, Bash]
----
-
-# R9 Novelty Reviewer
-
-## 审阅流程
-
-### 第一步：自由分析
-不受 Checklist 约束，自由评估研究的创新性...
-
-### 第二步：Checklist 评分
-对照 Checklist 逐条打分（0-100）...
-
-## 输出格式
-（与其他 Reviewer 保持一致的输出格式）
-```
-
-### 3. 注册到模板
+### 2. 注册到模板
 
 在模板的 `review_strategy` 中添加：
 
@@ -186,7 +131,7 @@ review_strategy:
     always: [R4, R5, R7, R9]     # 添加 R9
 ```
 
-### 4. 更新评分权重
+### 3. 更新评分权重和规则映射
 
 在 `config.yaml` 中调整：
 
@@ -235,7 +180,7 @@ checklist:
 新检查脚本的功能描述。
 
 输入参数：项目目录路径
-输出：检查结果（JSON 格式，便于 Pipeline 解析）
+输出：检查结果（JSON 格式，便于 controller 解析）
 """
 import argparse
 import json

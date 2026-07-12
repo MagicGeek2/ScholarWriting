@@ -12,9 +12,9 @@
 
 ## 目标
 
-把 `scholar_writing/resources/references/` 从“旧 skill 中零散引用的资料目录”升级为 Codex 与 Claude Code 都能使用的正式质量规则层。
+把 `scholar_writing/resources/references/` 从“旧 skill 中零散引用的资料目录”升级为共享核心和 Codex 写作角色使用的正式质量规则层。
 
-改造完成后，用户仍然只需要在 Codex 或 Claude Code 中用自然语言触发 `scholar-writing`。agent 在后台自动选择和加载必要 references，用这些资料约束规划、写作、审阅和修订。
+改造完成后，用户只需要在 Codex 中用自然语言触发 `scholar-writing`。agent 在后台自动选择和加载必要 references，用这些资料约束规划、写作、审阅和修订。
 
 ## 当前问题
 
@@ -30,7 +30,7 @@
 | `patterns/00_通用.md` | 通用过渡、递进、论证和衔接句式 |
 | `patterns/01_摘要.md` 至 `patterns/07_研究基础.md` | 分章节写作句式模板 |
 
-旧 Claude Code 角色资产已经大量引用这些资料。当前 Codex 新流程的入口、agent 配置、通用 prompt 和 taskpack 尚未正式接入它们。
+早期角色资产已经大量引用这些资料。改造前，Codex 流程的入口、agent 配置、通用 prompt 和 taskpack 尚未正式接入它们。
 
 直接后果：
 
@@ -38,7 +38,7 @@
 - Codex reviewer 缺少 de-AI、格式、叙事、可行性等专项规则来源。
 - Codex revision 无法把审阅意见映射回具体写作规范。
 - `references/` 的知识无法被 schema、测试和 taskpack 验证。
-- Claude Code 与 Codex 的质量基线可能逐步分叉。
+- 不同入口的质量基线可能逐步分叉。
 
 ## 设计原则
 
@@ -46,7 +46,7 @@
 2. **按任务选择资料。** 不把整个 `references/` 一次塞给 agent，避免上下文浪费和规则互相干扰。
 3. **taskpack 明确声明引用。** agent 读取哪些 references 必须可见、可测试、可复现。
 4. **Python controller 做选择，agent 做执行。** 资料选择逻辑进入确定性代码，避免每次由 LLM 临场判断。
-5. **Codex 和 Claude Code 共享同一套 reference registry。** 平台 adapter 只负责加载方式，规则映射不重复维护。
+5. **共享核心和 Codex 角色使用同一套 reference registry。** adapter 只负责加载方式，规则映射不重复维护。
 6. **引用路径使用相对路径。** 文档、taskpack、测试 fixture 中不写入本机绝对路径。
 
 ## 目标用户体验
@@ -517,7 +517,7 @@ tests/test_review_result_references.py
 | references 过多导致上下文膨胀 | selector 分 `required`、`section_specific`、`optional`，agent 先读必要资料 |
 | references 与用户材料冲突 | 用户材料作为事实来源，references 作为表达与结构规则；冲突写入交付说明 |
 | Codex agent 忘记读取 references | skill、agent toml、prompt、adapter tests 同时约束 |
-| Claude Code 与 Codex 规则分叉 | registry 成为共享规则源，旧 skill 后续逐步改为引用 registry |
+| 不同入口的规则分叉 | registry 成为共享规则源，所有写作角色通过 taskpack 引用 registry |
 | 新增 reference 后无人维护映射 | registry schema 和测试要求所有 path 存在 |
 
 ## 完成标准

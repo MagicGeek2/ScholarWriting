@@ -10,7 +10,7 @@
 - 问题的详细描述
 - 复现步骤
 - 期望行为与实际行为
-- 运行环境信息（Claude Code 版本、Python 版本、操作系统）
+- 运行环境信息（Codex 版本、Python 版本、操作系统）
 
 ### 提交代码
 
@@ -52,7 +52,7 @@ sections:
   - name: 章节名
     file: 01_章节名.md
     checklist: checklists/01_章节名.yaml
-    writer: writer/your_type/章节名
+    writer: writer
 
 dependency_graph:
   章节A:
@@ -63,28 +63,19 @@ dependency_graph:
     priority: 2
 ```
 
-### 添加新的 Writer Agent
+### 扩展 Writer 行为
 
-1. 在 `adapters/claude-code/skills/writer/` 下创建目录
-2. 编写 `SKILL.md`，包含 YAML frontmatter 和写作指令
-3. 创建 `config.yaml` 配置文件
+1. 在 `scholar_writing/prompts/writer.md` 中维护通用写作契约
+2. 在 `scholar_writing/resources/references/` 中增加项目类型或章节规则
+3. 在 `scholar_writing/resources/config/reference_registry.yaml` 中登记规则选择条件
+4. 为 taskpack 的 `reference_inputs` 和输出边界添加测试
 
-SKILL.md frontmatter 格式：
+### 扩展 Reviewer 行为
 
-```yaml
----
-name: writer-section-name
-description: 该章节的写作策略简述
-allowed-tools: [Read, Write, Edit, Bash]
----
-```
-
-### 添加新的 Reviewer Agent
-
-1. 在 `adapters/claude-code/skills/reviewer/` 下创建目录（如 `R9_your_dimension/`）
-2. 编写 `SKILL.md`，定义审阅维度和评分标准
-3. 在对应模板的 `review_strategy` 中注册新 Reviewer
-4. 更新 `config/default_config.yaml` 中的评分权重
+1. 在 `scholar_writing/prompts/reviewer.md` 中维护通用审阅契约
+2. 在对应模板的 `review_strategy` 中注册审阅维度
+3. 在 reference registry 中登记该维度需要的规则
+4. 为评分、事件推进和 taskpack 添加测试
 
 ### Checklist 编写规范
 

@@ -16,19 +16,6 @@ EXPECTED_SECTION_FILES = {
 }
 
 
-def test_nsfc_writer_outputs_match_base_template_section_files():
-    for section_name, expected_path in EXPECTED_SECTION_FILES.items():
-        config_path = REPO_ROOT / "adapters" / "claude-code" / "skills" / "writer" / "nsfc" / section_name / "config.yaml"
-        data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-        section_outputs = [
-            item["path"]
-            for item in data["parameters"]["outputs"]
-            if item["name"] == "section"
-        ]
-        assert section_outputs == [expected_path]
-        assert expected_path in data["guardrails"]["allowed_write_files"]
-
-
 def test_nsfc_base_template_declares_canonical_section_files():
     data = yaml.safe_load((REPO_ROOT / "scholar_writing" / "resources" / "templates" / "nsfc" / "base.yaml").read_text(encoding="utf-8"))
     template_files = {section["name"]: section["file"] for section in data["sections"]}
@@ -37,3 +24,11 @@ def test_nsfc_base_template_declares_canonical_section_files():
         name: path.removeprefix("sections/")
         for name, path in EXPECTED_SECTION_FILES.items()
     }
+
+
+def test_nsfc_templates_use_the_shared_writer_role():
+    template_dir = REPO_ROOT / "scholar_writing" / "resources" / "templates" / "nsfc"
+    for template_path in template_dir.glob("*.yaml"):
+        data = yaml.safe_load(template_path.read_text(encoding="utf-8"))
+        writers = [section.get("writer") for section in data.get("sections", [])]
+        assert all(writer in {None, "writer"} for writer in writers)

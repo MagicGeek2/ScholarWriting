@@ -18,7 +18,7 @@
 
 ## Agent 角色体系
 
-系统由 6 类核心 Agent 组成，分为三层。
+Codex 安装包含 4 类 custom agent：architect、writer、reviewer 和 revision。共享 controller 负责确定性状态推进，agent 根据 taskpack 执行语义任务。
 
 ### 规划层
 
@@ -36,9 +36,9 @@
 
 ### 执行层
 
-**Section Writer Agents（章节写作者）**
+**Writer Agent（写作者）**
 
-按章节类型拆分为独立 Writer Agent，每个 Writer 内嵌该章节特有的写作策略：
+通用 Writer 根据 taskpack 中的章节信息、Checklist 和 `reference_inputs` 选择对应写作策略：
 
 | Writer | 核心写作策略 |
 |--------|------------|
@@ -56,7 +56,7 @@
 
 ### 验证层
 
-将审阅拆分为 8 个专项 Reviewer，分章节级和全文级两组。
+Reviewer Agent 根据 taskpack 执行不同审阅维度，分章节级和全文级两组。这些维度是同一 Reviewer 的任务配置，不是独立安装的 agent。
 
 **章节级 Reviewer（内环）：**
 - **R1 Logic**：论证链完整性、前提是否成立、循环论证检测
@@ -68,7 +68,6 @@
 - **R5 Narrative**：全文叙事弧线、章节过渡自然度
 - **R6 Feasibility**：研究方案可执行性、时间规划合理性
 - **R7 Format**：篇幅比例、页数限制、标题层级、引文格式
-- **R8 Expert Simulation**：模拟评审专家视角（计划中）
 
 ## 双层迭代收敛引擎
 
@@ -77,7 +76,7 @@
 按 `dependency_graph.yaml` 的拓扑顺序逐章处理：
 
 ```
-Writer 写作 → R1+R2+R3 并行审阅 → 加权评分
+Writer 写作 → Reviewer 执行 R1+R2+R3 → 加权评分
     ↓                                    ↓
   ≥ 80 分 → 通过              < 80 分 → Revision → 重新审阅
                                          (最多 3 轮)
@@ -93,7 +92,7 @@ section_score = logic × 0.40 + de_ai × 0.25 + completeness × 0.35
 所有章节通过后进入外环：
 
 ```
-R4+R5+R7 并行审阅 (+ R6 条件触发) → 加权评分
+Reviewer 执行 R4+R5+R7（R6 条件触发）→ 加权评分
     ↓                                        ↓
   ≥ 85 分且无 critical → 完成    < 85 分 → Revision → 受影响章节重入内环
                                               (最多 5 轮)
@@ -119,14 +118,14 @@ global_score = consistency × 0.30 + narrative × 0.35
 
 | Agent 类型 | 输入内容 | 预算控制 |
 |-----------|---------|---------|
-| Section Writer | 大纲 + checklist + 前序章节 + 素材 | 前序章节只传递摘要（200-300 字） |
-| Section Reviewer | 章节文本 + checklist | 单章节 + 对应 checklist |
+| Writer Agent | 大纲 + checklist + 前序章节 + 素材 | 前序章节只传递摘要（200-300 字） |
+| Reviewer Agent（章节） | 章节文本 + checklist | 单章节 + 对应 checklist |
 | Revision Agent | 原文 + 审阅报告 + claim_registry | 只传递当前章节的审阅报告 |
-| Global Reviewer | 全文 + checklist | 每章压缩为 500 字摘要 + 重点章节原文 |
+| Reviewer Agent（全文） | 全文 + checklist | 每章压缩为 500 字摘要 + 重点章节原文 |
 
 ## Agent 间通信
 
-所有 Agent 通过文件系统通信，不共享上下文窗口。编排器（Pipeline）运行在主会话层，通过 `Agent` 工具平铺调用各 Writer/Reviewer Agent。
+所有 Agent 通过项目文件和 taskpack 通信，不共享上下文窗口。controller 生成 next action 和 taskpack，Codex 调用对应 custom agent，再把审阅或修订事件回写 controller。
 
 状态通过 `scores.yaml` 管理，支持断点恢复。
 
