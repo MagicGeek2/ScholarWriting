@@ -1,4 +1,6 @@
-# References 接入改造方案
+# References 接入设计记录
+
+> 本文档保留 references 接入的历史设计与实施分期，不是当前运行规范。现行结构以 `docs/codex-architecture.md`、`scholar_writing/resources/schemas/taskpack.schema.yaml` 和代码为准；当前 `reference_inputs` 使用 `required / section_specific / optional` 三组，分章节规则只在任务包提供目标章节时选择。
 
 ## 实施状态
 
@@ -65,16 +67,12 @@ Codex 后台应执行：
 
 ```yaml
 reference_inputs:
-  style:
-    - scholar_writing/resources/references/STYLE_GUIDE_ZH.md
-  de_ai:
-    - scholar_writing/resources/references/DEAI_PATTERNS_ZH.md
-  nsfc:
-    - scholar_writing/resources/references/NSFC_GUIDE.md
-    - scholar_writing/resources/references/NSFC_STRUCTURE_ZH.md
-  section_patterns:
-    - scholar_writing/resources/references/patterns/00_通用.md
-    - scholar_writing/resources/references/patterns/02_立项依据.md
+  required:
+    - id: style_zh
+      path: scholar_writing/resources/references/STYLE_GUIDE_ZH.md
+      reason: 中文学术写作风格规则
+  section_specific: []
+  optional: []
 ```
 
 4. reviewer 根据这些 references 输出结构化审阅结果。

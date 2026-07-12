@@ -87,9 +87,8 @@ dependency_graph:
 ### 运行测试
 
 ```bash
-cd tests
-python -m pytest test_validate.py -v
-python -m pytest test_scripts.py -v
+uv run pytest tests/test_validate.py -v
+uv run pytest tests/test_scripts.py -v
 ```
 
 ### Schema 校验
@@ -97,7 +96,7 @@ python -m pytest test_scripts.py -v
 修改数据结构后，确保通过 Schema 校验：
 
 ```bash
-python scholar_writing/resources/scripts/validate.py all <project_dir>
+uv run python scholar_writing/resources/scripts/validate.py all <project_dir>
 ```
 
 ## 代码风格

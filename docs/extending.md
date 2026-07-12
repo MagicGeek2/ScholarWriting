@@ -172,7 +172,7 @@ checklist:
 
 ## 添加辅助脚本
 
-如果需要新的确定性检查，在 `scripts/` 下创建 Python 脚本：
+如果需要新的确定性检查，在 `scholar_writing/resources/scripts/` 下创建 Python 脚本：
 
 ```python
 #!/usr/bin/env python3
