@@ -122,6 +122,24 @@ critical_threshold: 60
         os.unlink(path)
 
 
+def test_config_malformed_yaml_error_is_chinese():
+    """测试 YAML 语法错误不会泄漏 PyYAML 的英文诊断"""
+    path = write_yaml("project: [\n")
+    try:
+        result, code = run_validate('config', path)
+        error_msgs = ' '.join(e['message'] for e in result.get('errors', []))
+
+        assert code == 1
+        assert 'YAML 内容无效' in error_msgs
+        assert '行' in error_msgs
+        assert '列' in error_msgs
+        assert 'while parsing' not in error_msgs
+        assert 'expected the node content' not in error_msgs
+        assert '<stream end>' not in error_msgs
+    finally:
+        os.unlink(path)
+
+
 def test_config_missing_required():
     """测试缺少必填字段的 config"""
     path = write_yaml("""
@@ -135,6 +153,21 @@ project:
         result, code = run_validate('config', path)
         assert result['valid'] is False, f"应为 invalid，实际: {result}"
         assert code == 1
+        error_msgs = ' '.join(e['message'] for e in result.get('errors', []))
+        assert '缺少必填属性' in error_msgs
+        assert 'is a required property' not in error_msgs
+
+        text_result = subprocess.run(
+            [sys.executable, str(VALIDATE_SCRIPT), 'config', path],
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT,
+        )
+        assert text_result.returncode == 1
+        assert '[失败]' in text_result.stdout
+        assert '错误：' in text_result.stdout
+        assert 'FAIL' not in text_result.stdout
+        assert 'ERROR:' not in text_result.stdout
     finally:
         os.unlink(path)
 
@@ -173,6 +206,9 @@ critical_threshold: 60
         result, code = run_validate('config', path)
         assert result['valid'] is False, f"应为 invalid，实际: {result}"
         assert code == 1
+        error_msgs = ' '.join(e['message'] for e in result.get('errors', []))
+        assert '不在允许范围内' in error_msgs
+        assert 'is not one of' not in error_msgs
     finally:
         os.unlink(path)
 
@@ -251,6 +287,53 @@ sections:
         result, code = run_validate('scores', path)
         assert result['valid'] is False, f"应为 invalid，实际: {result}"
         assert code == 1
+    finally:
+        os.unlink(path)
+
+
+def test_scores_one_of_error_includes_branch_details_in_chinese():
+    """测试 oneOf 错误保留具体分支诊断"""
+    path = write_yaml("""
+phase: init
+global_round: 0
+sections:
+  introduction:
+    status: pending
+    current_round: 0
+    inner_scores:
+      - round: 1
+""")
+    try:
+        result, code = run_validate('scores', path)
+        error_msgs = ' '.join(e['message'] for e in result.get('errors', []))
+
+        assert code == 1
+        assert '值必须且只能符合一种允许结构' in error_msgs
+        assert '缺少必填属性' in error_msgs
+        assert 'weighted' in error_msgs
+        assert 'oneOf' not in error_msgs
+        assert 'is not valid under any of the given schemas' not in error_msgs
+    finally:
+        os.unlink(path)
+
+
+def test_min_properties_error_is_chinese():
+    """测试 minProperties 错误使用中文说明"""
+    path = write_yaml("""
+kind: review_result
+data:
+  section: introduction
+  round: 1
+  scores: {}
+  issues: []
+""")
+    try:
+        result, code = run_validate('review_result', path)
+        error_msgs = ' '.join(e['message'] for e in result.get('errors', []))
+
+        assert code == 1
+        assert '对象至少需要 1 个属性' in error_msgs
+        assert 'minProperties' not in error_msgs
     finally:
         os.unlink(path)
 
@@ -384,6 +467,64 @@ has_critical_flag: false
 | A1 | 论证逻辑 | 85 | 逻辑清晰 |
 
 - [Major] 需要补充更多文献支撑
+"""
+    path = write_md(content)
+    try:
+        result, code = run_validate('review_report', path)
+        assert result['valid'] is True, f"应为 valid，实际: {result}"
+        assert code == 0
+    finally:
+        os.unlink(path)
+
+
+def test_review_report_valid_with_chinese_display_labels():
+    """中文审阅报告可使用完整中文表头与问题级别标签"""
+    content = """---
+section: introduction
+reviewer: R1
+round: 1
+dimension: logic
+score: 85
+has_critical_flag: false
+---
+
+## 审阅报告
+
+| ID | 评审标准 | 得分 | 评分依据 |
+|----|----------|------|----------|
+| A1 | 论证逻辑 | 85 | 逻辑清晰 |
+
+## 问题清单
+
+- [主要] 需要补充更多文献支撑
+"""
+    path = write_md(content)
+    try:
+        result, code = run_validate('review_report', path)
+        assert result['valid'] is True, f"应为 valid，实际: {result}"
+        assert code == 0
+    finally:
+        os.unlink(path)
+
+
+def test_review_report_accepts_common_chinese_header_synonyms():
+    """自然中文表头同义词不会被英文模板规则拒绝"""
+    content = """---
+section: introduction
+reviewer: R1
+round: 1
+dimension: logic
+score: 85
+has_critical_flag: false
+---
+
+## 审阅报告
+
+| ID | 审阅标准 | 分数 | 依据 |
+|----|----------|------|------|
+| A1 | 论证逻辑 | 85 | 逻辑清晰 |
+
+- [次要] 补充一处说明
 """
     path = write_md(content)
     try:

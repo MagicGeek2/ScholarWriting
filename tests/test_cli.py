@@ -3,8 +3,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
+import scholar_writing.cli as cli
 from scholar_writing.core.state import create_initial_state, write_state
 
 
@@ -24,7 +26,33 @@ def test_cli_help():
     result = run_cli("--help")
 
     assert result.returncode == 0
-    assert "ScholarWriting" in result.stdout
+    assert result.stdout.startswith("用法：")
+    assert "ScholarWriting 确定性工作流 CLI" in result.stdout
+    assert "创建标准的 ScholarWriting 项目骨架" in result.stdout
+    assert "位置参数:" in result.stdout
+    assert "选项:" in result.stdout
+    assert "显示此帮助信息并退出" in result.stdout
+    assert "show this help message" not in result.stdout
+
+
+def test_cli_argument_errors_are_chinese():
+    invalid_command = run_cli("not-a-command")
+    missing_project = run_cli("init")
+    invalid_type = run_cli("init", "/tmp/scholar-invalid", "--type", "invalid")
+
+    assert invalid_command.returncode == 2
+    assert "参数 command" in invalid_command.stderr
+    assert "无效选择" in invalid_command.stderr
+    assert "invalid choice" not in invalid_command.stderr
+
+    assert missing_project.returncode == 2
+    assert "以下参数为必填项：project_dir" in missing_project.stderr
+    assert "the following arguments are required" not in missing_project.stderr
+
+    assert invalid_type.returncode == 2
+    assert "参数 --type" in invalid_type.stderr
+    assert "无效选择" in invalid_type.stderr
+    assert "invalid choice" not in invalid_type.stderr
 
 
 def test_cli_status_reads_scores_yaml(tmp_path):
@@ -90,6 +118,153 @@ def test_cli_taskpack_outputs_architect_pack(tmp_path):
     assert data["agent_role"] == "architect"
     assert data["action"] == "run_architect"
     assert data["outputs"]["outline_path"] == "planning/outline.md"
+
+
+def test_cli_taskpack_reports_unsupported_project_language_in_chinese(tmp_path):
+    (tmp_path / "config.yaml").write_text(
+        "project:\n  language: fr\n",
+        encoding="utf-8",
+    )
+
+    result = run_cli("taskpack", str(tmp_path), "--format", "json")
+
+    assert result.returncode == 2
+    assert "project.language" in result.stderr
+    assert "仅允许 zh 或 en" in result.stderr
+    assert "请修改 config.yaml" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_cli_taskpack_reports_invalid_config_structure_in_chinese(tmp_path):
+    (tmp_path / "config.yaml").write_text("project: invalid\n", encoding="utf-8")
+
+    result = run_cli("taskpack", str(tmp_path), "--format", "json")
+
+    assert result.returncode == 2
+    assert "config.yaml" in result.stderr
+    assert "project" in result.stderr
+    assert "对象" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "AttributeError" not in result.stderr
+    assert "has no attribute" not in result.stderr
+
+
+def test_cli_advance_reports_missing_event_file_in_chinese(tmp_path):
+    missing_event = tmp_path / "missing-event.yaml"
+
+    result = run_cli("advance", str(tmp_path), "--event-file", str(missing_event))
+
+    assert result.returncode == 2
+    assert f"文件不存在：{missing_event}" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "No such file or directory" not in result.stderr
+
+
+def test_cli_advance_reports_malformed_yaml_in_chinese(tmp_path):
+    event_file = tmp_path / "bad-event.yaml"
+    event_file.write_text("kind: [\n", encoding="utf-8")
+
+    result = run_cli("advance", str(tmp_path), "--event-file", str(event_file))
+
+    assert result.returncode == 2
+    assert "YAML 内容无效" in result.stderr
+    assert "行" in result.stderr
+    assert "列" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "ParserError" not in result.stderr
+    assert "while parsing" not in result.stderr
+
+
+def test_cli_next_reports_invalid_scores_structure_in_chinese(tmp_path):
+    (tmp_path / "scores.yaml").write_text("invalid\n", encoding="utf-8")
+
+    result = run_cli("next", str(tmp_path), "--format", "json")
+
+    assert result.returncode == 2
+    assert "scores.yaml" in result.stderr
+    assert "对象" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "AttributeError" not in result.stderr
+
+
+def test_cli_next_reports_invalid_revision_structure_in_chinese(tmp_path):
+    (tmp_path / "scores.yaml").write_text(
+        """phase: section_revision
+global_round: 0
+sections: {}
+revision: invalid
+""",
+        encoding="utf-8",
+    )
+
+    result = run_cli("next", str(tmp_path), "--format", "json")
+
+    assert result.returncode == 2
+    assert "scores.yaml" in result.stderr
+    assert "revision" in result.stderr
+    assert "对象" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "AttributeError" not in result.stderr
+
+
+def test_cli_advance_reports_invalid_event_structure_in_chinese(tmp_path):
+    event_file = tmp_path / "event.yaml"
+    event_file.write_text("- invalid\n", encoding="utf-8")
+
+    result = run_cli("advance", str(tmp_path), "--event-file", str(event_file))
+
+    assert result.returncode == 2
+    assert "事件 YAML" in result.stderr
+    assert "对象" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "AttributeError" not in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("event_content", "expected_path"),
+    [
+        ("kind: review_result\ndata: invalid\n", "data"),
+        (
+            """kind: review_result
+data:
+  section: 摘要
+  round: 1
+  scores:
+    logic: 85
+  issues:
+    - invalid
+""",
+            "data.issues.0",
+        ),
+    ],
+)
+def test_cli_advance_reports_invalid_review_result_shape_in_chinese(
+    tmp_path,
+    event_content,
+    expected_path,
+):
+    event_file = tmp_path / "review-result.yaml"
+    event_file.write_text(event_content, encoding="utf-8")
+
+    result = run_cli("advance", str(tmp_path), "--event-file", str(event_file))
+
+    assert result.returncode == 2
+    assert "review_result 事件无效" in result.stderr
+    assert expected_path in result.stderr
+    assert "对象" in result.stderr
+    assert "Traceback" not in result.stderr
+    assert "AttributeError" not in result.stderr
+    assert "has no attribute" not in result.stderr
+
+
+def test_cli_main_does_not_swallow_unexpected_errors(monkeypatch, tmp_path):
+    def raise_unexpected_error(args):
+        raise RuntimeError("unexpected internal failure")
+
+    monkeypatch.setattr(cli, "command_status", raise_unexpected_error)
+
+    with pytest.raises(RuntimeError, match="unexpected internal failure"):
+        cli.main(["status", str(tmp_path)])
 
 
 def test_cli_advance_records_next_action(tmp_path):

@@ -15,22 +15,22 @@ while [ "$#" -gt 0 ]; do
       ;;
     --help|-h)
       cat <<'EOF'
-Usage: scripts/install-codex.sh [--no-sync] [--replace]
+用法：scripts/install-codex.sh [--no-sync] [--replace]
 
-Install ScholarWriting into the local Codex home.
+将 ScholarWriting 安装到本机 Codex。
 
-Options:
-  --replace  Replace an existing ScholarWriting Codex installation. Use only after user confirmation.
+选项：
+  --replace  替换已有的 ScholarWriting Codex 安装。仅在用户确认后使用。
 
-Environment:
-  CODEX_HOME                  Defaults to $HOME/.codex
-  SCHOLAR_WRITING_INSTALL_DIR Defaults to $CODEX_HOME/skills/scholar-writing
-  SCHOLAR_WRITING_AGENTS_DIR  Defaults to $CODEX_HOME/agents
+环境变量：
+  CODEX_HOME                  默认值：$HOME/.codex
+  SCHOLAR_WRITING_INSTALL_DIR 默认值：$CODEX_HOME/skills/scholar-writing
+  SCHOLAR_WRITING_AGENTS_DIR  默认值：$CODEX_HOME/agents
 EOF
       exit 0
       ;;
     *)
-      echo "Unknown option: $1" >&2
+      echo "未知选项：$1" >&2
       exit 2
       ;;
   esac
@@ -46,13 +46,13 @@ trap 'rm -rf "$stage_dir"' EXIT
 stage_source="$stage_dir/source"
 
 if [ -z "$install_dir" ] || [ "$install_dir" = "/" ]; then
-  echo "Refusing unsafe install directory: $install_dir" >&2
+  echo "拒绝使用不安全的安装目录：$install_dir" >&2
   exit 1
 fi
 
 if [ -e "$install_dir" ] && [ "$replace_existing" -ne 1 ] && [ "$(cd "$install_dir" && pwd)" != "$repo_root" ]; then
-  echo "Existing ScholarWriting installation detected: $install_dir" >&2
-  echo "Stop and ask the user before replacing it. If they confirm, rerun with --replace." >&2
+  echo "检测到已有 ScholarWriting 安装：$install_dir" >&2
+  echo "替换前请停止并询问用户。确认后使用 --replace 重新运行。" >&2
   exit 10
 fi
 
@@ -165,6 +165,8 @@ ${CODEX_HOME:-$HOME/.codex}/skills/scholar-writing/bin/scholar-writing taskpack 
 
 按返回的 action 和 taskpack 推进。`taskpack.reference_inputs` 是安装版运行资源中 `scholar_writing/resources/references/` 提供的质量规则；paper 项目会额外选择论文 lifecycle、章节写作、review gate、venue/visual、英文润色和 citation strategy references。
 
+`project.language` 只控制最终学术产物的语言和参考规则选择。任务包中的对应字段是 `output_language`：`zh` 产出中文学术内容，`en` 产出英文学术内容；任务包缺少 `output_language` 时按 `zh` 处理。用户交互始终使用简体中文，不随这个设置改变。
+
 ## 写作角色
 
 当前 Codex 环境中如果能发现以下写作角色，优先使用：
@@ -199,13 +201,13 @@ EOF
 
 if [ "$sync_runtime" -eq 1 ]; then
   if ! command -v uv >/dev/null 2>&1; then
-    echo "uv is required to pre-sync the runtime. Install uv or rerun with --no-sync." >&2
+    echo "预同步 runtime 需要 uv。请安装 uv，或使用 --no-sync 重新运行。" >&2
     exit 1
   fi
   uv sync --project "$runtime_dir"
 fi
 
-echo "ScholarWriting installed for Codex."
-echo "Skill: $install_dir"
-echo "Agents: $agents_dir"
-echo "Restart Codex to refresh installed skills and agents."
+echo "ScholarWriting 已安装到 Codex。"
+echo "Skill：$install_dir"
+echo "Agents：$agents_dir"
+echo "请重启 Codex，以刷新已安装的 Skill 和 Agents。"

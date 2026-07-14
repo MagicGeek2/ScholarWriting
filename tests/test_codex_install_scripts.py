@@ -51,10 +51,19 @@ def test_codex_install_and_uninstall_roundtrip(tmp_path):
     installed_skill = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     assert "学术写作助手" in installed_skill
     assert "paper 项目" in installed_skill
+    assert "project.language" in installed_skill
+    assert "用户交互始终使用简体中文" in installed_skill
+    assert "缺少 `output_language` 时按 `zh` 处理" in installed_skill
+    installed_writer_prompt = (
+        runtime_dir / "scholar_writing" / "prompts" / "writer.md"
+    ).read_text(encoding="utf-8")
+    assert "缺少 `output_language` 时按 `zh` 处理" in installed_writer_prompt
+    assert "ScholarWriting 已安装到 Codex" in install.stdout
 
     uninstall = run_script("uninstall-codex.sh", codex_home)
 
     assert uninstall.returncode == 0, uninstall.stderr
+    assert "ScholarWriting 已从 Codex 中移除" in uninstall.stdout
     assert not skill_dir.exists()
     assert not (codex_home / "agents" / "scholar-writer.toml").exists()
 
@@ -76,7 +85,7 @@ def test_installed_wrapper_sets_runtime_and_runs_help(tmp_path):
     )
 
     assert result.returncode == 0, result.stderr
-    assert "ScholarWriting deterministic workflow CLI" in result.stdout
+    assert "ScholarWriting 确定性工作流 CLI" in result.stdout
 
 
 def test_install_stops_when_previous_skill_payload_exists(tmp_path):
@@ -88,9 +97,17 @@ def test_install_stops_when_previous_skill_payload_exists(tmp_path):
     install = run_script("install-codex.sh", codex_home)
 
     assert install.returncode == 10
-    assert "Existing ScholarWriting installation detected" in install.stderr
-    assert "rerun with --replace" in install.stderr
+    assert "检测到已有 ScholarWriting 安装" in install.stderr
+    assert "使用 --replace 重新运行" in install.stderr
     assert stale_file.exists()
+
+
+def test_install_help_is_chinese(tmp_path):
+    result = run_script("install-codex.sh", tmp_path / "codex-home", "--help")
+
+    assert result.returncode == 0
+    assert "将 ScholarWriting 安装到本机 Codex" in result.stdout
+    assert "选项：" in result.stdout
 
 
 def test_install_replaces_previous_skill_payload_when_explicitly_allowed(tmp_path):

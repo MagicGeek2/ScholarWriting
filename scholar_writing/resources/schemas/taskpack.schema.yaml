@@ -18,6 +18,9 @@ properties:
     enum: [from_materials, from_outline, from_draft, needs_user_input, null]
   reason:
     type: [string, "null"]
+  output_language:
+    type: string
+    enum: [zh, en]
   inputs:
     type: object
   outputs:

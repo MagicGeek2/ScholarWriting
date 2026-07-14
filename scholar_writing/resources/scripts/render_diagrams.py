@@ -16,12 +16,16 @@ Mermaid 图表渲染脚本
   --theme: Mermaid 主题（default, neutral, dark, forest）
 """
 
-import argparse
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+try:
+    from ._argparse_zh import ChineseArgumentParser, localize_parser
+except ImportError:
+    from _argparse_zh import ChineseArgumentParser, localize_parser
 
 
 def check_mmdc_installed():
@@ -135,9 +139,9 @@ def main():
     返回值:
         无（通过 stdout 输出 JSON 结果）
     """
-    parser = argparse.ArgumentParser(
+    parser = localize_parser(ChineseArgumentParser(
         description="将 Mermaid (.mmd) 文件渲染为 svg/png 格式"
-    )
+    ))
     parser.add_argument(
         "input_path",
         help=".mmd 文件路径或包含 .mmd 文件的目录"

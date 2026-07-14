@@ -40,9 +40,9 @@ def _validate_reference_paths(reference_inputs, repo_root):
         for item in group:
             path = Path(item["path"])
             if path.is_absolute():
-                raise ValueError(f"Reference path must be relative: {item['path']}")
+                raise ValueError(f"参考文件路径必须是相对路径：{item['path']}")
             if not (Path(repo_root) / path).exists():
-                raise FileNotFoundError(f"Reference file does not exist: {item['path']}")
+                raise FileNotFoundError(f"参考文件不存在：{item['path']}")
 
 
 def select_references(

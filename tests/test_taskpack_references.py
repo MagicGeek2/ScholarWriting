@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
 from scholar_writing.core.config import load_project_config
@@ -137,3 +138,34 @@ def test_paper_revision_taskpack_contains_review_and_citation_references(tmp_pat
     assert taskpack["review"]["dimensions"] == ["logic", "de_ai", "completeness", "format"]
     assert "scholar_writing/resources/references/paper/paper-review-gates.md" in paths
     assert "scholar_writing/resources/references/paper/citation-strategy.md" in paths
+
+
+def test_project_language_controls_output_and_reference_selection_only(tmp_path):
+    taskpacks = {}
+    for language in ["zh", "en"]:
+        project_dir = tmp_path / language
+        write_paper_project(project_dir, language=language)
+        (project_dir / "planning").mkdir()
+        (project_dir / "planning" / "outline.md").write_text("# Outline\n", encoding="utf-8")
+        taskpacks[language] = build_temp_taskpack(project_dir)
+
+    zh_pack = taskpacks["zh"]
+    en_pack = taskpacks["en"]
+    zh_paths = flatten_paths(zh_pack)
+    en_paths = flatten_paths(en_pack)
+
+    assert zh_pack["action"] == en_pack["action"] == "run_writer"
+    assert zh_pack["output_language"] == "zh"
+    assert en_pack["output_language"] == "en"
+    assert zh_pack["reason"] == en_pack["reason"] == "检测到 planning/outline.md，可进入章节写作。"
+    assert "scholar_writing/resources/references/STYLE_GUIDE_ZH.md" in zh_paths
+    assert "scholar_writing/resources/references/STYLE_GUIDE_ZH.md" not in en_paths
+    assert "scholar_writing/resources/references/paper/english-paper-polishing.md" not in zh_paths
+    assert "scholar_writing/resources/references/paper/english-paper-polishing.md" in en_paths
+
+
+def test_taskpack_rejects_unsupported_project_language(tmp_path):
+    write_paper_project(tmp_path, language="fr")
+
+    with pytest.raises(ValueError, match=r"project\.language.*zh.*en.*config\.yaml"):
+        build_temp_taskpack(tmp_path)

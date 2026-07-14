@@ -1,7 +1,7 @@
 [project]
 name = "scholarwriting"
 version = "0.1.0"
-description = "Multi-agent academic writing framework with platform-neutral workflow contracts."
+description = "面向学术写作的多 Agent 框架，提供平台中性的工作流契约。"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

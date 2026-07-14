@@ -15,11 +15,12 @@
 
 ## 输出模板
 
-- Summary：一句话概括论文试图解决的问题和方法。
-- Strengths：只写材料能支撑的优点。
-- Major concerns：按证据链排序。
-- Minor concerns：表达、格式、局部清晰度。
-- Actionable revision plan：给出投稿前修改顺序。
+人类可读标题按 `taskpack.output_language` 选择；字段缺失时按 `zh`：
+
+- `zh`：概要 / 优点 / 主要问题 / 次要问题 / 可执行修订计划。
+- `en`：Summary / Strengths / Major concerns / Minor concerns / Actionable revision plan。
+
+内容要求不随语言改变：概要用一句话概括论文试图解决的问题和方法；优点只写材料能支撑的内容；主要问题按证据链排序；次要问题聚焦表达、格式和局部清晰度；修订计划给出投稿前修改顺序。机器事件的 `severity` 枚举继续使用 `critical`、`major`、`minor`。
 
 ## 禁止
 

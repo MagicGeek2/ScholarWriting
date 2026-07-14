@@ -4,14 +4,14 @@
 review_report:
   required_patterns:
     - name: "评分表格"
-      pattern: '^\|\s*ID\s*\|\s*Criterion\s*\|\s*Score\s*\|\s*Justification\s*\|'
-      description: "必须包含标准评分表格头"
+      pattern: '^\|\s*ID\s*\|\s*(Criterion|评审标准|审阅标准)\s*\|\s*(Score|得分|分数)\s*\|\s*(Justification|评分依据|依据)\s*\|'
+      description: "必须包含中文或英文标准评分表格头"
     - name: "评分行"
       pattern: '^\|\s*[A-Z]\d+\s*\|'
       min_count: 1
       description: "至少包含一行评分数据"
     - name: "修改建议"
-      pattern: '^\s*-\s*\[(Critical|Major|Minor)\]'
+      pattern: '^\s*-\s*\[(Critical|Major|Minor|严重|主要|次要)\]'
       min_count: 0
       description: "修改建议按严重级别标注（可选）"
   score_validation:

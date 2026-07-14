@@ -28,6 +28,80 @@ def test_default_config_validates_against_schema():
     assert errors == []
 
 
+def test_schema_errors_are_chinese():
+    repo_root = find_repo_root(Path(__file__))
+    errors = validate_data(
+        "config",
+        {"project": {"type": "invalid", "language": "xx"}},
+        repo_root,
+    )
+
+    assert any("缺少必填属性" in error for error in errors)
+    assert any("不在允许范围内" in error for error in errors)
+    assert all("is a required property" not in error for error in errors)
+    assert all("is not one of" not in error for error in errors)
+
+
+def test_schema_one_of_errors_include_branch_details_in_chinese():
+    repo_root = find_repo_root(Path(__file__))
+    errors = validate_data(
+        "scores",
+        {
+            "phase": "init",
+            "global_round": 0,
+            "sections": {
+                "introduction": {
+                    "status": "pending",
+                    "current_round": 0,
+                    "inner_scores": [{"round": 1}],
+                }
+            },
+        },
+        repo_root,
+    )
+    message = "\n".join(errors)
+
+    assert "值必须且只能符合一种允许结构" in message
+    assert "缺少必填属性" in message
+    assert "weighted" in message
+    assert "oneOf" not in message
+    assert "is not valid under any of the given schemas" not in message
+
+
+def test_schema_min_properties_error_is_chinese():
+    repo_root = find_repo_root(Path(__file__))
+    errors = validate_data(
+        "review_result",
+        {
+            "kind": "review_result",
+            "data": {
+                "section": "introduction",
+                "round": 1,
+                "scores": {},
+                "issues": [],
+            },
+        },
+        repo_root,
+    )
+
+    assert any("对象至少需要 1 个属性" in error for error in errors)
+    assert all("minProperties" not in error for error in errors)
+
+
+def test_taskpack_output_language_remains_optional_for_backwards_compatibility():
+    repo_root = find_repo_root(Path(__file__))
+    taskpack = {
+        "task_id": "task-1",
+        "action": "run_writer",
+        "agent_role": "writer",
+        "project_dir": ".",
+        "inputs": {},
+        "outputs": {},
+    }
+
+    assert validate_data("taskpack", taskpack, repo_root) == []
+
+
 def test_project_config_merges_over_default(tmp_path):
     repo_root = find_repo_root(Path(__file__))
     project_config = tmp_path / "config.yaml"

@@ -102,6 +102,17 @@ ${CODEX_HOME:-$HOME/.codex}/skills/scholar-writing/bin/scholar-writing taskpack 
 
 用户通常不需要手动打开这些文件。Codex skill 会先生成 taskpack，再把 `reference_inputs` 作为写作、审阅或修订规则传给 custom agent。
 
+## 设置学术产物语言
+
+在写作项目的 `config.yaml` 中设置：
+
+```yaml
+project:
+  language: zh  # zh | en
+```
+
+该字段只控制最终报告或论文的语言和参考规则选择。无论选择 `zh` 还是 `en`，CLI、错误、进度和确认等交互都默认使用简体中文。
+
 ## 常用 CLI
 
 在源码仓库中调试时可以使用：

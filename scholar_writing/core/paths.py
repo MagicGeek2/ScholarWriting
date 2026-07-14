@@ -9,7 +9,7 @@ def find_repo_root(start=None):
         candidate = Path(runtime_root).resolve()
         if (candidate / "README.md").exists() and (candidate / "scholar_writing" / "resources").is_dir():
             return candidate
-        raise FileNotFoundError(f"SCHOLAR_WRITING_RUNTIME is not a ScholarWriting runtime: {candidate}")
+        raise FileNotFoundError(f"SCHOLAR_WRITING_RUNTIME 不是有效的 ScholarWriting runtime：{candidate}")
 
     current = Path(start or Path.cwd()).resolve()
     if current.is_file():
@@ -19,7 +19,7 @@ def find_repo_root(start=None):
         if (candidate / "README.md").exists() and (candidate / "scholar_writing" / "resources").is_dir():
             return candidate
 
-    raise FileNotFoundError(f"Cannot find ScholarWriting repo root from {current}")
+    raise FileNotFoundError(f"无法从以下位置找到 ScholarWriting 仓库根目录：{current}")
 
 
 def framework_root(repo_root=None):

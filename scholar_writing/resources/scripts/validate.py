@@ -21,7 +21,6 @@
   校验结果（错误列表、警告列表、是否通过）
 """
 
-import argparse
 import glob as glob_mod
 import json
 import re
@@ -30,6 +29,11 @@ from collections import deque
 from pathlib import Path
 
 import yaml
+
+try:
+    from ._argparse_zh import ChineseArgumentParser, localize_parser
+except ImportError:
+    from _argparse_zh import ChineseArgumentParser, localize_parser
 
 try:
     from jsonschema import Draft7Validator
@@ -61,6 +65,16 @@ REVIEWER_DIMENSION_MAP = {
     'R5': 'narrative',
     'R6': 'feasibility',
     'R7': 'format',
+}
+
+SCHEMA_TYPE_NAMES_ZH = {
+    'array': '列表',
+    'boolean': '布尔值',
+    'integer': '整数',
+    'null': '空值',
+    'number': '数字',
+    'object': '对象',
+    'string': '字符串',
 }
 
 
@@ -181,7 +195,97 @@ def validate_schema(data, data_type, result):
     validator = Draft7Validator(schema)
     for error in validator.iter_errors(data):
         path = '.'.join(str(p) for p in error.absolute_path) if error.absolute_path else ''
-        result.add_error(f'Schema 校验失败: {error.message}', path=path or None)
+        result.add_error(f'Schema 校验失败：{format_schema_error(error)}', path=path or None)
+
+
+def format_schema_type(expected):
+    """将一个或多个 JSON Schema 类型名称转换为简体中文。"""
+    values = expected if isinstance(expected, list) else [expected]
+    return '、'.join(SCHEMA_TYPE_NAMES_ZH.get(value, str(value)) for value in values)
+
+
+def format_schema_context(error):
+    """转换并去重组合规则中的分支错误。"""
+    details = []
+    for child in error.context:
+        path = '.'.join(str(part) for part in child.relative_path)
+        message = format_schema_error(child)
+        detail = f'{path}: {message}' if path else message
+        if detail not in details:
+            details.append(detail)
+    return '；'.join(details)
+
+
+def format_schema_error(error):
+    """将 jsonschema 校验详情转换为简体中文。"""
+    if error.validator == 'required':
+        match = re.fullmatch(r"'(.+)' is a required property", error.message)
+        if match:
+            return f"缺少必填属性：{match.group(1)!r}"
+        missing = [
+            repr(name)
+            for name in error.validator_value
+            if not isinstance(error.instance, dict) or name not in error.instance
+        ]
+        return f"缺少必填属性：{', '.join(missing)}"
+    if error.validator == 'enum':
+        allowed = ', '.join(repr(value) for value in error.validator_value)
+        return f'值 {error.instance!r} 不在允许范围内：{allowed}'
+    if error.validator == 'type':
+        return f'值的类型不符合要求，应为：{format_schema_type(error.validator_value)}'
+    if error.validator == 'minimum':
+        return f'数值不能小于 {error.validator_value}'
+    if error.validator == 'maximum':
+        return f'数值不能大于 {error.validator_value}'
+    if error.validator == 'minLength':
+        return f'字符串长度不能少于 {error.validator_value}'
+    if error.validator == 'maxLength':
+        return f'字符串长度不能超过 {error.validator_value}'
+    if error.validator == 'minItems':
+        return f'列表项目数不能少于 {error.validator_value}'
+    if error.validator == 'maxItems':
+        return f'列表项目数不能超过 {error.validator_value}'
+    if error.validator == 'minProperties':
+        return f'对象至少需要 {error.validator_value} 个属性'
+    if error.validator == 'uniqueItems':
+        return '列表项目不能重复'
+    if error.validator == 'pattern':
+        return f'字符串不符合格式规则：{error.validator_value}'
+    if error.validator == 'additionalProperties':
+        allowed = set(error.schema.get('properties', {}))
+        extras = [repr(name) for name in error.instance if name not in allowed]
+        detail = f"：{', '.join(extras)}" if extras else ''
+        return f'存在未允许的额外属性{detail}'
+    if error.validator in {'oneOf', 'anyOf'}:
+        requirement = (
+            '值必须且只能符合一种允许结构'
+            if error.validator == 'oneOf'
+            else '值至少需要符合一种允许结构'
+        )
+        details = format_schema_context(error)
+        return f'{requirement}；具体问题：{details}' if details else requirement
+    return f'未满足 Schema 规则：{error.validator}'
+
+
+def format_yaml_error(error):
+    """将 PyYAML 语法错误压缩为不泄漏英文内部诊断的中文位置提示。"""
+    mark = getattr(error, 'problem_mark', None)
+    if mark is not None:
+        return f'YAML 内容无效：第 {mark.line + 1} 行，第 {mark.column + 1} 列。'
+    return 'YAML 内容无效；请检查文件格式。'
+
+
+def format_file_read_error(error, file_path):
+    """将可预期的文件读取错误转换为简体中文。"""
+    if isinstance(error, IsADirectoryError):
+        return f'需要文件，但收到目录：{file_path}'
+    if isinstance(error, FileNotFoundError):
+        return f'文件不存在：{file_path}'
+    if isinstance(error, PermissionError):
+        return f'无权读取文件：{file_path}'
+    if isinstance(error, UnicodeError):
+        return f'文件编码无效，请确认使用 UTF-8：{file_path}'
+    return f'无法读取文件，请检查路径、权限和编码：{file_path}'
 
 
 # ======================== 语义校验器 ========================
@@ -501,8 +605,8 @@ def validate_file(data_type, file_path, base_dir=None, project_type=None, **kwar
 
     try:
         content = file_path.read_text(encoding='utf-8')
-    except Exception as e:
-        result.add_error(f'文件读取失败: {e}')
+    except (OSError, UnicodeError) as error:
+        result.add_error(format_file_read_error(error, file_path))
         return result
 
     if data_type in MARKDOWN_TYPES:
@@ -529,12 +633,12 @@ def validate_file(data_type, file_path, base_dir=None, project_type=None, **kwar
         # YAML 文件
         try:
             data = yaml.safe_load(content)
-        except yaml.YAMLError as e:
-            result.add_error(f'YAML 解析失败: {e}')
+        except yaml.YAMLError as error:
+            result.add_error(format_yaml_error(error))
             return result
 
         if not isinstance(data, dict):
-            result.add_error('YAML 文件顶层必须为 object')
+            result.add_error('YAML 文件顶层必须为对象')
             return result
 
         # Schema 校验
@@ -608,17 +712,17 @@ def format_text(result, quiet=False):
       str - 格式化文本
     """
     lines = []
-    status = 'PASS' if result.valid else 'FAIL'
+    status = '通过' if result.valid else '失败'
     lines.append(f'[{status}] {result.data_type}: {result.file_path}')
 
     for err in result.errors:
         path_info = f' ({err["path"]})' if err.get('path') else ''
-        lines.append(f'  ERROR: {err["message"]}{path_info}')
+        lines.append(f'  错误：{err["message"]}{path_info}')
 
     if not quiet:
         for warn in result.warnings:
             path_info = f' ({warn["path"]})' if warn.get('path') else ''
-            lines.append(f'  WARNING: {warn["message"]}{path_info}')
+            lines.append(f'  警告：{warn["message"]}{path_info}')
 
     return '\n'.join(lines)
 
@@ -631,11 +735,11 @@ def main():
       python validate.py <type> <file> [--format json|text] [--strict] [--quiet] [--project-type nsfc|paper]
       python validate.py all <project_root> [--format json|text] [--strict] [--quiet]
     """
-    parser = argparse.ArgumentParser(description='ScholarWriting 统一校验脚本')
+    parser = localize_parser(ChineseArgumentParser(description='ScholarWriting 统一校验脚本'))
     parser.add_argument('type', help='数据类型或 "all"')
     parser.add_argument('file', help='文件路径或项目根目录')
     parser.add_argument('--format', choices=['json', 'text'], default='text', help='输出格式')
-    parser.add_argument('--strict', action='store_true', help='严格模式：warning 升级为 error')
+    parser.add_argument('--strict', action='store_true', help='严格模式：将警告升级为错误')
     parser.add_argument('--quiet', action='store_true', help='静默模式：仅输出错误')
     parser.add_argument('--project-type', choices=['nsfc', 'paper'], default=None, help='项目类型')
 

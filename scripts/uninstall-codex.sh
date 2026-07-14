@@ -8,19 +8,19 @@ while [ "$#" -gt 0 ]; do
       ;;
     --help|-h)
       cat <<'EOF'
-Usage: scripts/uninstall-codex.sh
+用法：scripts/uninstall-codex.sh
 
-Remove ScholarWriting from the local Codex home.
+从本机 Codex 中移除 ScholarWriting。
 
-Environment:
-  CODEX_HOME                  Defaults to $HOME/.codex
-  SCHOLAR_WRITING_INSTALL_DIR Defaults to $CODEX_HOME/skills/scholar-writing
-  SCHOLAR_WRITING_AGENTS_DIR  Defaults to $CODEX_HOME/agents
+环境变量：
+  CODEX_HOME                  默认值：$HOME/.codex
+  SCHOLAR_WRITING_INSTALL_DIR 默认值：$CODEX_HOME/skills/scholar-writing
+  SCHOLAR_WRITING_AGENTS_DIR  默认值：$CODEX_HOME/agents
 EOF
       exit 0
       ;;
     *)
-      echo "Unknown option: $1" >&2
+      echo "未知选项：$1" >&2
       exit 2
       ;;
   esac
@@ -37,4 +37,4 @@ rm -f \
   "$agents_dir/scholar-reviewer.toml" \
   "$agents_dir/scholar-revision.toml"
 
-echo "ScholarWriting removed from Codex."
+echo "ScholarWriting 已从 Codex 中移除。"

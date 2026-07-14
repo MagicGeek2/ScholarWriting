@@ -4,9 +4,19 @@ from .references import select_references
 from .workflow import next_action
 
 
+SUPPORTED_OUTPUT_LANGUAGES = ("zh", "en")
+
+
 def build_taskpack(project_dir, config, state):
     """Build a minimal task pack from the current next action."""
     project_dir = Path(project_dir)
+    output_language = config.get("project", {}).get("language", "zh")
+    if output_language not in SUPPORTED_OUTPUT_LANGUAGES:
+        raise ValueError(
+            f"project.language 的值 {output_language!r} 不受支持；"
+            "仅允许 zh 或 en。请修改 config.yaml。"
+        )
+
     action = next_action(project_dir, config, state)
     kind = action["action"]
     base = {
@@ -15,6 +25,7 @@ def build_taskpack(project_dir, config, state):
         "project_dir": str(project_dir),
         "input_mode": action.get("input_mode"),
         "reason": action.get("reason"),
+        "output_language": output_language,
     }
 
     if kind == "run_architect":
@@ -89,7 +100,7 @@ def build_taskpack(project_dir, config, state):
         agent_role=base["agent_role"],
         target_section=base.get("section", {}).get("id"),
         review_dimensions=base.get("review", {}).get("dimensions"),
-        language=config.get("project", {}).get("language", "zh"),
+        language=output_language,
     )
 
     return base

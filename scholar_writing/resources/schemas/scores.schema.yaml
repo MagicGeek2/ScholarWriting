@@ -44,6 +44,8 @@ properties:
         type: [string, "null"]
   blocked_reason:
     type: [string, "null"]
+  revision:
+    type: object
   sections:
     type: object
     additionalProperties:

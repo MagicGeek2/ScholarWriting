@@ -27,7 +27,20 @@ def load_project_config(project_dir, repo_root=None):
     project_path = Path(project_dir) / "config.yaml"
     if not project_path.exists():
         return default
-    return deep_merge(default, load_yaml(project_path))
+    override = load_yaml(project_path)
+    if not isinstance(override, dict):
+        raise ValueError("config.yaml 的顶层必须是对象。")
+    config = deep_merge(default, override)
+    project = config.get("project")
+    if isinstance(project, dict) and project.get("language") not in {"zh", "en"}:
+        raise ValueError(
+            f"project.language 的值 {project.get('language')!r} 不受支持；"
+            "仅允许 zh 或 en。请修改 config.yaml。"
+        )
+    errors = validate_config(config, repo_root)
+    if errors:
+        raise ValueError(f"config.yaml 配置无效：{'；'.join(errors)}")
+    return config
 
 
 def validate_config(config, repo_root=None):

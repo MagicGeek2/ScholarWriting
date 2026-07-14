@@ -126,7 +126,7 @@ def advance_state(state, config, event=None):
             updated["revision"] = {
                 "section": section_name,
                 "requires_user_confirmation": critical,
-                "confirmation_reason": "critical issue requires user confirmation" if critical else None,
+                "confirmation_reason": "critical 问题需要用户确认。" if critical else None,
                 "issues": issues,
             }
             updated["next_action"] = next_action(".", config, updated)

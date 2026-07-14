@@ -15,6 +15,27 @@ def run_script(script, *args):
     )
     return json.loads(result.stdout), result.returncode
 
+
+def run_script_raw(script, *args):
+    """运行脚本并保留原始文本输出。"""
+    return subprocess.run(
+        [sys.executable, str(SCRIPTS_DIR / script)] + list(args),
+        capture_output=True,
+        text=True,
+        cwd=PROJECT_ROOT,
+    )
+
+
+def test_helper_cli_help_is_chinese():
+    """测试有参数解析的辅助脚本使用中文帮助界面。"""
+    for script in ['validate.py', 'render_diagrams.py']:
+        result = run_script_raw(script, '--help')
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.startswith('用法：')
+        assert '选项:' in result.stdout
+        assert '显示此帮助信息并退出' in result.stdout
+        assert 'show this help message' not in result.stdout
+
 def test_count_words_file():
     """测试单文件字数统计。"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8') as f:

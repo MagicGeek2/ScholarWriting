@@ -36,7 +36,12 @@ def state_path(project_dir):
 def read_state(project_dir):
     """Read scores.yaml from a project directory."""
     with open(state_path(project_dir), "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        state = yaml.safe_load(f) or {}
+    if not isinstance(state, dict):
+        raise ValueError("scores.yaml 的顶层必须是对象。")
+    if "revision" in state and not isinstance(state["revision"], dict):
+        raise ValueError("scores.yaml 中的 revision 必须是对象。")
+    return state
 
 
 def write_state(project_dir, state):

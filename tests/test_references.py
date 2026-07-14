@@ -88,7 +88,7 @@ def test_missing_reference_file_raises_clear_error(tmp_path):
         "section_patterns": {},
     }
 
-    with pytest.raises(FileNotFoundError, match="Reference file does not exist"):
+    with pytest.raises(FileNotFoundError, match="参考文件不存在"):
         select_references(
             project_type="nsfc",
             action="run_writer",
@@ -129,3 +129,19 @@ def test_paper_reference_files_exist_and_preserve_boundaries():
     assert "不能把愿望写成结果" in (paper_dir / "paper-lifecycle-and-outline.md").read_text(encoding="utf-8")
     assert "不代表任何会议或期刊的官方模板" in (paper_dir / "venue-and-visual-contract.md").read_text(encoding="utf-8")
     assert "不能替代 Zotero/CSL" in (paper_dir / "citation-strategy.md").read_text(encoding="utf-8")
+
+
+def test_paper_review_references_route_human_labels_by_output_language():
+    repo_root = find_repo_root(Path(__file__))
+    paper_dir = repo_root / "scholar_writing" / "resources" / "references" / "paper"
+    rubric = (paper_dir / "peer-review-rubric.md").read_text(encoding="utf-8")
+    gates = (paper_dir / "paper-review-gates.md").read_text(encoding="utf-8")
+
+    for content in [rubric, gates]:
+        assert "output_language" in content
+        assert "critical" in content
+        assert "major" in content
+        assert "minor" in content
+    assert "概要 / 优点 / 主要问题 / 次要问题 / 可执行修订计划" in rubric
+    assert "Summary / Strengths / Major concerns / Minor concerns / Actionable revision plan" in rubric
+    assert "严重 / 主要 / 次要" in gates

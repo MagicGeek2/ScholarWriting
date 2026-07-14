@@ -15,7 +15,7 @@ def detect_input_mode(project_dir, config):
     if configured in SUPPORTED_INPUT_MODES:
         return configured
     if configured != "auto":
-        raise ValueError(f"Unsupported input_mode: {configured}")
+        raise ValueError(f"不支持的 input_mode：{configured}")
 
     root = Path(project_dir)
     if any((root / "sections").glob("*.md")):

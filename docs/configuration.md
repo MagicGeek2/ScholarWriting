@@ -17,8 +17,10 @@ project:
   type: nsfc                          # 项目类型：nsfc | paper
   template: 面上项目                   # 模板名称，对应 templates/ 下的文件
   input_mode: from_materials           # 入口模式：from_materials | from_outline | from_draft
-  language: zh                         # 语言：zh | en
+  language: zh                         # 学术产物语言：zh | en
 ```
+
+`project.language` 只决定最终报告或论文的语言，以及本轮选择哪些写作参考规则。controller 会把它写入任务包的 `output_language`。该字段不控制 CLI、错误、进度或确认提示；这些交互默认使用简体中文。
 
 **input_mode 说明：**
 
