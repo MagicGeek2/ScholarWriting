@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 try:
@@ -32,10 +33,10 @@ def test_codex_repo_skill_exists_with_required_metadata():
 def test_codex_custom_agents_exist_with_required_fields():
     agents_dir = REPO_ROOT / ".codex" / "agents"
     expected = {
-        "scholar-architect.toml": ["架构师", "规划师"],
-        "scholar-writer.toml": ["写作者"],
-        "scholar-reviewer.toml": ["审阅者"],
-        "scholar-revision.toml": ["修订者"],
+        "scholar-architect.toml": ["Architect", "Planner"],
+        "scholar-writer.toml": ["Writer"],
+        "scholar-reviewer.toml": ["Reviewer"],
+        "scholar-revision.toml": ["Reviser"],
     }
 
     assert {path.name for path in agents_dir.glob("*.toml")} == set(expected)
@@ -48,6 +49,7 @@ def test_codex_custom_agents_exist_with_required_fields():
         assert "developer_instructions =" in content
         assert "reference_inputs" in content
         assert parsed["nickname_candidates"] == nickname_candidates
+        assert all(re.fullmatch(r"[A-Za-z0-9 _-]+", value) for value in nickname_candidates)
 
         if file_name != "scholar-architect.toml":
             assert "缺少 `output_language` 时按 `zh` 处理" in parsed["developer_instructions"]

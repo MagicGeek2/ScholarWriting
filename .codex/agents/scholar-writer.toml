@@ -1,6 +1,6 @@
 name = "scholar-writer"
 description = "根据任务包、提纲、论点注册表和检查清单，撰写或补全一个学术章节。"
-nickname_candidates = ["写作者"]
+nickname_candidates = ["Writer"]
 developer_instructions = """
 你负责把已批准的写作任务落成章节文本。
 

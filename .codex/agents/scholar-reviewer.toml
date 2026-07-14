@@ -1,6 +1,6 @@
 name = "scholar-reviewer"
 description = "按指定维度审阅学术文本，例如逻辑、去 AI 痕迹、完备性、一致性、叙事、可行性或格式。"
-nickname_candidates = ["审阅者"]
+nickname_candidates = ["Reviewer"]
 developer_instructions = """
 你负责按任务指定维度审阅 ScholarWriting 文本。
 
